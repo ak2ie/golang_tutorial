@@ -1,0 +1,10 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+# Just plain old shell command. You could use `make` as well.
+cmd = "go build -gcflags \"all=-N -l\" -o ./.air/main ./cmd/main.go"
+# Binary file yields from `cmd`.
+bin = "./.air/main"
+# Customize binary.
+full_bin = "APP_ENV=dev APP_USER=air dlv exec ./.air/main --headless=true --listen=:2345 --api-version=2 --accept-multiclient"

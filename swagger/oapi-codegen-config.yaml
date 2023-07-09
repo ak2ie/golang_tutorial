@@ -1,0 +1,7 @@
+package: hello
+generate:
+  chi-server: true
+  client: false
+  models: true
+  embedded-spec: true
+output: cmd/hello/hello.gen.go

@@ -1,16 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
+
+	"github.com/ak2ie/golang_tutorial/cmd/adapters"
+	"github.com/ak2ie/golang_tutorial/cmd/hello"
 )
 
 func main() {
-	http.HandleFunc("/hello", helloHandler)
-	http.ListenAndServe(":8080", nil)
-}
-
-func helloHandler(w http.ResponseWriter, r *http.Request) {
-	test := "Hello Remote Debug!!!"
-	fmt.Fprint(w, test)
+	http.ListenAndServe(":8080", hello.Handler(&adapters.Server{}))
 }

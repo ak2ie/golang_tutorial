@@ -1,0 +1,19 @@
+swagger: "2.0"
+info:
+  title: Swagger Practice
+  version: 1.0.0
+host: localhost
+schemes:
+  - http
+paths:
+  /hello:
+    get:
+      operationId: hello
+      responses:
+        200:
+          description: OK
+          schema:
+            type: string
+            description: response text
+
+ 
