@@ -17,11 +17,22 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// Sample defines model for sample.
+type Sample struct {
+	Id *string `json:"id,omitempty"`
+}
+
+// PostHelloJSONRequestBody defines body for PostHello for application/json ContentType.
+type PostHelloJSONRequestBody = Sample
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
 	// (GET /hello)
 	Hello(w http.ResponseWriter, r *http.Request)
+
+	// (POST /hello)
+	PostHello(w http.ResponseWriter, r *http.Request)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -39,6 +50,21 @@ func (siw *ServerInterfaceWrapper) Hello(w http.ResponseWriter, r *http.Request)
 
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.Hello(w, r)
+	})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// PostHello operation middleware
+func (siw *ServerInterfaceWrapper) PostHello(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostHello(w, r)
 	})
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -164,6 +190,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/hello", wrapper.Hello)
 	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/hello", wrapper.PostHello)
+	})
 
 	return r
 }
@@ -171,10 +200,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/2SOwUoEMRBEf2Wpc9gZ9ZYvUDwoeBQPYaadBLLpprtdlWX+XRLx4valoItXVReU9s6I",
-	"F3jxSoh4+UzbRnp41rR4WQgBZ1Ir3BBxc5yPM/YAFmpJCiLuxitAkmfrQVOmWkfkRt6FhTR54fawIuJ+",
-	"uAFKJtyMBnM7z11WskWL+G/Z0yMCbMl0StfmH35w+nIE+Lf09eZa2oZ9XICR9vGIr//5lc5UWU7UOv2h",
-	"FRHZXeI0VV5SzWw+YX/bfwIAAP//gCSOaCIBAAA=",
+	"H4sIAAAAAAAC/7yRQU/jMBCF/0r0do9Rnd3VXnzc0yKQqMQRcTDONHHl2MaellZV/jsat1BEkbhxSaxn",
+	"v2/ezBxg45RioMAF+oBiR5rM8Wim5ElOKcdEmR1V3fXynczuhsLAI/TfFrxPBI3C2YUB8/ymxMc1WcYs",
+	"kgurKFZ2LFzcPZthoNwss7HsLKHFlnJxMUDj16JbdJhbxETBJAeNP1VqkQyPNYkayfuKHIjl11Ox2SU+",
+	"Igbipr5oJirFDFJAGjFyf9VD43/1t8hUUgzl2N/vrrtk3V6jPQ3n8vLV3jDtGJfTkOZTLJ9EFPWLjMtY",
+	"+JzzaUOF/8V+LywbA1OoWJOSd7a61LoI+/Au7s9MK2j8UOdlq9Om1WnNNaTwXaYemvOG5m8YjFQtlGXv",
+	"0Pcf/T1tycc0SZMtNtlDY2ROWikfrfFjLKwwP8wvAQAA//9XrmEVxwIAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

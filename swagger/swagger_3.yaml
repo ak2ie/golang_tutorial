@@ -8,6 +8,7 @@ servers:
 paths:
   /hello:
     get:
+      description: get hello message
       operationId: hello
       responses:
         200:
@@ -15,5 +16,27 @@ paths:
           schema:
             type: string
             description: response text
+    post:
+      description: post hello message
+      operationId: postHello
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/sample'
+      responses:
+        200:
+          description: OK
+          schema:
+            type: string
+            description: response text
 
- 
+components:
+  schemas:
+    sample:
+      type: object
+      properties:
+        id:
+          type: string
+          maxLength: 5
