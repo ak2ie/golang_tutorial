@@ -1,9 +1,15 @@
 package adapters
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
+
+	_ "github.com/jackc/pgx/v4/stdlib"
+	"golang.org/x/exp/slog"
 
 	"github.com/ak2ie/golang_tutorial/cmd/hello"
 )
@@ -13,7 +19,35 @@ import (
 type Server struct{}
 
 func (s *Server) Hello(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello World!")
+	db, err := sql.Open("pgx", "host=postgres port=5432 user=postgres dbname=db password=password sslmode=disable")
+	if nil != err {
+		slog.Error("db connection failed")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+	defer cancel()
+	err = db.PingContext(ctx)
+	if nil != err {
+		slog.Error("db cannot open." + err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	var (
+		id   int
+		name string
+	)
+	row := db.QueryRowContext(ctx, `SELECT id, name FROM book WHERE id = $1`, 1)
+	err = row.Scan(&id, &name)
+	if nil != err {
+		slog.Error("db select error")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprint(w, "Hello "+name)
 }
 
 func (s *Server) PostHello(w http.ResponseWriter, r *http.Request) {
