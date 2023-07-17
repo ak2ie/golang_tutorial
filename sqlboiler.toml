@@ -1,0 +1,11 @@
+output		= "models"
+wipe		= true		# コード生成前にファイル削除
+no-tests	= true	# テストを生成しない
+add-enum-types	= true
+[psql]
+dbname		= "db"
+host		= "postgres"
+port		= "5432"
+user		= "postgres"
+pass		= "password"
+sslmode 	= "disable"
