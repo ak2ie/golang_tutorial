@@ -12,6 +12,7 @@ import (
 	"golang.org/x/exp/slog"
 
 	"github.com/ak2ie/golang_tutorial/cmd/hello"
+	"github.com/ak2ie/golang_tutorial/models"
 )
 
 // ServerInterfaceを実装
@@ -33,6 +34,16 @@ func (s *Server) Hello(w http.ResponseWriter, r *http.Request) {
 		slog.Error("db cannot open." + err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+
+	books, err := models.Books().All(ctx, db)
+	if nil != err {
+		slog.Error("db select error")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	for i := range books {
+		fmt.Printf("%s\n", books[i].Name)
 	}
 
 	var (
