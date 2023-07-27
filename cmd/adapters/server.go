@@ -1,64 +1,62 @@
 package adapters
 
 import (
-	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"golang.org/x/exp/slog"
 
 	"github.com/ak2ie/golang_tutorial/cmd/hello"
-	"github.com/ak2ie/golang_tutorial/models"
+	"github.com/ak2ie/golang_tutorial/generated"
 )
 
 // ServerInterfaceを実装
-
 type Server struct{}
 
+// Bookテーブル
+// type Book struct {
+// 	ID    int
+// 	Name  string
+// 	Price int
+// }
+
 func (s *Server) Hello(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("pgx", "host=postgres port=5432 user=postgres dbname=db password=password sslmode=disable")
+	dsn := "host=postgres port=5432 user=postgres dbname=db password=password sslmode=disable"
+	// db, err := sql.Open("pgx", "host=postgres port=5432 user=postgres dbname=db password=password sslmode=disable")
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if nil != err {
 		slog.Error("db connection failed")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
-	defer cancel()
-	err = db.PingContext(ctx)
+	// ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+	// defer cancel()
+	// err = db.PingContext(ctx)
+	// if nil != err {
+	// 	slog.Error("db cannot open." + err.Error())
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
+
+	err = db.AutoMigrate(&generated.Book{})
 	if nil != err {
-		slog.Error("db cannot open." + err.Error())
+		slog.Error("db migration error! " + err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	books, err := models.Books().All(ctx, db)
-	if nil != err {
-		slog.Error("db select error")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	for i := range books {
-		fmt.Printf("%s\n", books[i].Name)
-	}
+	var book generated.Book
+	db.First(&book, 1)
 
-	var (
-		id   int
-		name string
-	)
-	row := db.QueryRowContext(ctx, `SELECT id, name FROM book WHERE id = $1`, 1)
-	err = row.Scan(&id, &name)
-	if nil != err {
-		slog.Error("db select error")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	fmt.Printf("%s %d円\n", book.Name.String, book.Price.Int64)
 
-	fmt.Fprint(w, "Hello "+name)
+	fmt.Fprint(w, "Hello!")
 }
 
 func (s *Server) PostHello(w http.ResponseWriter, r *http.Request) {

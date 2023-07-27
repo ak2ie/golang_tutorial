@@ -3,3 +3,6 @@ swagger-generate-api:
 
 swagger-validate:
 	swagger validate swagger/swagger_3.yaml
+
+db-generate:
+	sqlboiler psql
